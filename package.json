@@ -1,0 +1,33 @@
+{
+  "name": "graphql_server",
+  "version": "1.0.0",
+  "description": "GrpahQL server implementation with SQL DB at backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VigneshwaranJheyaraman/graphql_server.git"
+  },
+  "keywords": [
+    "GraphQL",
+    "SQL",
+    "Node",
+    "npm"
+  ],
+  "author": "VickySuraj (9696)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VigneshwaranJheyaraman/graphql_server/issues"
+  },
+  "homepage": "https://github.com/VigneshwaranJheyaraman/graphql_server#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-graphql": "^0.9.0",
+    "graphql": "^14.5.8",
+    "mysql": "^2.17.1"
+  },
+  "devDependencies": {}
+}
