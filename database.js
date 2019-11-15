@@ -1,13 +1,9 @@
 const mysqlJS = require("mysql");
+const { serverConfig } = require("./serverConfig");
+const {sqlQueries} = require("./sqlQueries");
 
 //database connector configutation
-var dbConnector = mysqlJS.createConnection({
-    host: "192.168.2.165",
-    user: "graphql_user",
-    password: "Mysql@12",
-    database: "gql_db",
-    port: 3306
-});
+var dbConnector = mysqlJS.createConnection(serverConfig.dbConfiguration.server);
 
 
 //connect to database;
@@ -17,22 +13,22 @@ function connectoDatabase(callback) {
     dbConnector.connect();
 
     //get the list of rows from table "POST"
-    dbConnector.query("select * from post", function (err, response, fields) {
+    dbConnector.query(sqlQueries.list(serverConfig.dbConfiguration.tableName), async function (err, response, fields) {
         if (err) { 
             console.log(`Error Occured: ${err.toString()}`)
             return JSON.stringify({ error: err.toString() }); 
         }
         if (response && response.length > 0) {
             //response is available
-            callback(response);
+            await callback(response);
         }
         else {
-            callback([{ error: "Empty Response" }])
+            await callback([{ error: "Empty Response" }])
         }
+        //database connection ended
+        //dbConnector.end();
     });
 
-    //database connection ended
-    dbConnector.end();
 }
 
 module.exports = {dbConnector: dbConnector, connectionFunction : connectoDatabase}

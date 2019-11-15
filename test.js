@@ -23,5 +23,21 @@ sleep
     dbConnector.query("select sleep(2)",(err, res, field)=>{
         if(err)console.log(err);
     });
+gql no http
+    graphql(schema, `{
+        allposts(totalCount: 5){
+            title
+        }
+    }`, { db: serverObject.postObject }.db).then((r) => { console.log(r.data.allposts) });
 
+
+sample data
+return totalCount ? 
+                    [{ id: 1, title: "Title 1", message: "Message 1", createdAt: Date.now().toString() }]
+                    :
+                    [
+                        { id: 1, title: "Title 1", message: "Message 1", createdAt: Date.now().toString() },
+                        { id: 2, title: "Title 2", message: "Message 2", createdAt: Date.now().toString() },
+                        { id: 3, title: "Title 3", message: "Message 3", createdAt: Date.now().toString() }
+                    ]
 */

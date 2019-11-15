@@ -7,7 +7,7 @@ ServerObject.prototype.getPostFromIndex = function(index){
     return this.postObject.filter((v,i) => {return i === index})
 };
 
-ServerObject.prototype.updatedServerObject = function(newObject){
+ServerObject.prototype.updatedServerObject = async function(newObject){
     this.postObject = newObject;
 }
 

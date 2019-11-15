@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Graph QL Server</title>
+</head>
+<style>
+    html,
+    body {
+        height: 100%;
+    }
+
+    .fromsql {
+        border: 2px solid red;
+    }
+
+    .fromsql .operations {
+        display: block;
+        margin: 10px auto;
+        text-align: center;
+    }
+
+    .fromsql .operations button {
+        display: inline-block;
+    }
+
+    #sql-response {
+        margin: 10px auto;
+        border: 2px solid grey;
+    }
+
+    .fromgql {
+        border: 2px solid green;
+    }
+
+    .fromgql * {
+        margin: 10px auto;
+    }
+
+    .fromgql div {
+        width: 100%;
+        text-align: center;
+    }
+
+    .fromgql table {
+        border: 3px dotted black;
+    }
+
+    [class*="from"] {
+        display: block;
+        width: 100%;
+        height: 50%;
+    }
+
+    .scroll-area {
+        overflow: scroll;
+        height: 100%;
+        max-height: inherit;
+    }
+</style>
+
+<body>
+    <h1>Welcome to GraphQL Server</h1>
+    <div class="fromsql">
+        <div class="operations">
+            <button onclick="sqlListAll();">List ALL</button>
+            <button onclick="sqlListId();">List ID</button>
+            <button onclick="sqlListTitle();">List TITLE</button>
+            <button onclick="sqlListMessage();">List MESSAGE</button>
+            <button onclick="sqlListCreatedAt();">List CREATED AT</button>
+        </div>
+        <div class="scroll-area" style="max-height:80%;">
+            <table id="sql-response" border="1" cellspacing="10">
+                <thead>
+                    <td>Id</td>
+                    <td>Title</td>
+                    <td>Message</td>
+                    <td>CreatedAt</td>
+                </thead>
+            </table>
+        </div>
+    </div>
+    <div class="fromgql">
+        <div>
+            <input type="text" placeholder="Enter the query" id="gqlQuery" />
+            <button onclick="gqlFetchAll();">Submit</button>
+        </div>
+        <div class="scroll-area">
+            <table id="responseTable" border="1" cellspacing="10">
+                <thead>
+                    <td>Id</td>
+                    <td>Title</td>
+                    <td>Message</td>
+                    <td>CreatedAt</td>
+                </thead>
+            </table>
+        </div>
+    </div>
+</body>
+<script>
+    const SERVER = "http://localhost:8080";
+    const restAPI = {
+        root: "/api",
+        links: {
+            allPosts: "/all",
+            onlyId: "/id",
+            onlyTitle: "/title",
+            onlyMessage: "/message",
+            onlyCreatedAt: "/createdAt",
+            mannual: "/mannual"
+        }
+    };
+    const graphQL = {
+        root: "/gql",
+        links: {
+            allPosts: "/all"
+        }
+    };
+
+    function clearTable(table) {
+        if (table.rows.length > 1) {
+            for (var i = table.rows.length - 1; i > 0; i--) {
+                table.deleteRow(i);
+            }
+        }
+        return table;
+    }
+
+    function updateTable(table, response) {
+        table = clearTable(table);
+        var postObject = ["id", "title", "message", "createdAt"];
+        response.forEach((x) => {
+            var eachRow = document.createElement("tr");
+            postObject.forEach((y) => {
+                var eachColumn = document.createElement("td");
+                eachColumn.innerHTML = x[y] && x[y] !== "" ? x[y] : "-";
+                eachRow.appendChild(eachColumn);
+            });
+            table.appendChild(eachRow)
+        });
+        return table;
+    }
+
+    async function apiGetter(task, table) {
+        fetch(
+            SERVER + restAPI.root + task,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+        ).
+            then(res => {
+                return res.json();
+            })
+            .then(jsonRes => {
+                if (jsonRes.response && jsonRes.response.length > 0) {
+                    updateTable(table, jsonRes.response);
+                }
+            })
+            .catch(err => {
+                console.log("Error:" + err);
+            })
+
+    }
+
+    async function apiPoster(task, table, body) {
+        fetch(SERVER + graphQL.root + task,
+            {
+                method: "POST",
+                body: JSON.stringify(body),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+        .then((res) => {
+            return res.json();
+        })
+        .then(jsonRes => {
+            if (jsonRes.response && jsonRes.response.length > 0) {
+                updateTable(table, jsonRes.response);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        });
+
+    }
+
+    async function sqlListAll() {
+        var table = document.getElementById("sql-response");
+        table = await apiGetter(restAPI.links.allPosts, table);
+    }
+
+    async function sqlListId()
+    {
+        var table = document.getElementById("sql-response");
+        table = await apiGetter(restAPI.links.onlyId, table);
+    }
+
+    async function sqlListTitle()
+    {
+        var table = document.getElementById("sql-response");
+        table = await apiGetter(restAPI.links.onlyTitle, table);
+    }
+
+    async function sqlListMessage()
+    {
+        var table = document.getElementById("sql-response");
+        table = await apiGetter(restAPI.links.onlyMessage, table);
+    }
+
+    async function sqlListCreatedAt()
+    {
+        var table = document.getElementById("sql-response");
+        table = await apiGetter(restAPI.links.onlyCreatedAt, table);
+    }
+
+    async function gqlFetchAll() {
+        /*
+            GrapgQL response fetcher
+        */
+        var userInput = document.getElementById("gqlQuery");
+        var table = document.getElementById("responseTable");
+        if (userInput.value !== "") {
+            table = await apiPoster(graphQL.links.allPosts, table, {input: userInput.value});
+        }
+        else {
+            userInput.placeholder = "Please Enter the query";
+        }
+    }
+</script>
+
+</html>
