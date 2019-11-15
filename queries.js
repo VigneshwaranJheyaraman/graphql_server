@@ -24,13 +24,13 @@ var queries = {
         fields:{
             allposts:{
                 type:new GraphQLList(Post),
-                resolve:() => {
-                    return [{
-                        id:2323,
-                        title:"This is a test title",
-                        message:"This is a test message",
-                        createdAt:Date.now().toString()
-                    }]
+                args:{
+                    totalCount: {
+                        type:GraphQLInt,
+                    }
+                },
+                resolve:(db, {totalCount}) => {
+                    return db.slice(0, totalCount+1);
                 }
             }
         }

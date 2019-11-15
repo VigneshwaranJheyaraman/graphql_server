@@ -18,7 +18,10 @@ function connectoDatabase(callback) {
 
     //get the list of rows from table "POST"
     dbConnector.query("select * from post", function (err, response, fields) {
-        if (err) { return JSON.stringify({ error: err.toString() }) }
+        if (err) { 
+            console.log(`Error Occured: ${err.toString()}`)
+            return JSON.stringify({ error: err.toString() }); 
+        }
         if (response && response.length > 0) {
             //response is available
             callback(response);

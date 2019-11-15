@@ -10,6 +10,7 @@ var { ServerObject } = require("./serverObject");
 
 var serverObject = new ServerObject([]);
 
+
 //callback after connected with database
 function dbConnectedCallback(newObject) {
     serverObject.updatedServerObject(newObject);
@@ -28,11 +29,10 @@ function dbConnectedCallback(newObject) {
     var schema = new GraphQLSchema({ query: queries.allPosts });
 
     graphql(schema, `{
-        allposts{
-            id
+        allposts(totalCount: 5){
             title
         }
-    }`).then((r) => { console.log(r.data.allposts) });
+    }`, { db : serverObject.postObject }.db).then((r) => { console.log(r.data.allposts) });
 
     //describe the resolvers
     //var rootResolvers = 
