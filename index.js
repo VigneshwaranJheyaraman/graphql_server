@@ -48,6 +48,7 @@ graphQLServer.post(
     serverConfig.urlLocations.gql_server.allposts,
     async function (request, response) {
         if (request.body && JSON.stringify(request.body) !== JSON.stringify({})) {
+            response.setHeader("Cache-Control","max-age=2");
             await graphql(schema, request.body.input).then((gql_response) => {
                 return response.json({
                     response: gql_response.data.allposts
@@ -123,7 +124,7 @@ graphQLServer.get(
         })
     }
 );
-graphQLServer.get(
+graphQLServer.post(
     serverConfig.urlLocations.rest_api.mannual,
     async function (request, response) {
         if (request.body && JSON.stringify(request.body) !== JSON.stringify({})) {

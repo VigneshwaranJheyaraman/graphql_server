@@ -1,8 +1,12 @@
+
+
 /* 
+var {dbConnector} = require("./database");
+var mysqlJS = require("mysql");
 creation and display
 
-for (var i = 0; i < 100; i++) {
-    dbConnector.query(mysqlJS.format("INSERT INTO post (title, message, createAt) values(?,?,?)", [`Title ${i + 9}`, `Message ${i + 9}`, 'CURRTIME()']), (err, res, fields) => {
+for (var i = 100; i < 50000; i++) {
+    dbConnector.query(mysqlJS.format("INSERT INTO post (title, message, createdAt) values(?,?,?)", [`Title ${i + 9}`, `Message ${i + 9}`, mysqlJS.raw('CURTIME()')]), (err, res, fields) => {
         if (err) { console.log(err); }
         console.log(res);
     });

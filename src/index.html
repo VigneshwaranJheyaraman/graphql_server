@@ -37,7 +37,7 @@
         margin: 10px auto;
     }
 
-    .fromgql div {
+    .queryDiv {
         width: 100%;
         text-align: center;
     }
@@ -54,7 +54,7 @@
 
     .scroll-area {
         overflow: scroll;
-        height: 100%;
+        height: 80%;
         max-height: inherit;
     }
 </style>
@@ -62,6 +62,10 @@
 <body>
     <h1>Welcome to GraphQL Server</h1>
     <div class="fromsql">
+        <div class="queryDiv">
+            <input type="text" placeholder="Enter the SQL Query" id="sqlQuery" />
+            <button onclick="sqlListMannual()">Submit</button>
+        </div>
         <div class="operations">
             <button onclick="sqlListAll();">List ALL</button>
             <button onclick="sqlListId();">List ID</button>
@@ -69,7 +73,7 @@
             <button onclick="sqlListMessage();">List MESSAGE</button>
             <button onclick="sqlListCreatedAt();">List CREATED AT</button>
         </div>
-        <div class="scroll-area" style="max-height:80%;">
+        <div class="scroll-area">
             <table id="sql-response" border="1" cellspacing="10">
                 <thead>
                     <td>Id</td>
@@ -81,7 +85,7 @@
         </div>
     </div>
     <div class="fromgql">
-        <div>
+        <div class="queryDiv">
             <input type="text" placeholder="Enter the query" id="gqlQuery" />
             <button onclick="gqlFetchAll();">Submit</button>
         </div>
@@ -100,6 +104,7 @@
 <script>
     const SERVER = "http://localhost:8080";
     const restAPI = {
+        name: "api",
         root: "/api",
         links: {
             allPosts: "/all",
@@ -111,24 +116,27 @@
         }
     };
     const graphQL = {
+        name: "gql",
         root: "/gql",
         links: {
             allPosts: "/all"
         }
     };
 
-    function clearTable(table) {
+    function clearTable(table, tableBodyId) {
         if (table.rows.length > 1) {
-            for (var i = table.rows.length - 1; i > 0; i--) {
-                table.deleteRow(i);
-            }
+            var oldBody = document.getElementById(tableBodyId);
+            oldBody.parentElement.removeChild(oldBody);
         }
         return table;
     }
 
-    function updateTable(table, response) {
-        table = clearTable(table);
+    function updateTable(table, response, typeOfQuery) {
+        var tbodyId = typeOfQuery + "tableData";
+        table = clearTable(table, tbodyId);
         var postObject = ["id", "title", "message", "createdAt"];
+        var tableBody = document.createElement("tbody");
+        tableBody.setAttribute("id", tbodyId);
         response.forEach((x) => {
             var eachRow = document.createElement("tr");
             postObject.forEach((y) => {
@@ -136,8 +144,9 @@
                 eachColumn.innerHTML = x[y] && x[y] !== "" ? x[y] : "-";
                 eachRow.appendChild(eachColumn);
             });
-            table.appendChild(eachRow)
+            tableBody.appendChild(eachRow);
         });
+        table.appendChild(tableBody);
         return table;
     }
 
@@ -156,7 +165,11 @@
             })
             .then(jsonRes => {
                 if (jsonRes.response && jsonRes.response.length > 0) {
-                    updateTable(table, jsonRes.response);
+                    updateTable(table, jsonRes.response, restAPI.name);
+                }
+                else
+                {
+                    throw new Error(jsonRes.error);
                 }
             })
             .catch(err => {
@@ -165,8 +178,8 @@
 
     }
 
-    async function apiPoster(task, table, body) {
-        fetch(SERVER + graphQL.root + task,
+    async function apiPoster(task, table, body, serverName) {
+        fetch(SERVER + task,
             {
                 method: "POST",
                 body: JSON.stringify(body),
@@ -174,17 +187,21 @@
                     "Content-Type": "application/json"
                 }
             })
-        .then((res) => {
-            return res.json();
-        })
-        .then(jsonRes => {
-            if (jsonRes.response && jsonRes.response.length > 0) {
-                updateTable(table, jsonRes.response);
-            }
-        })
-        .catch(err => {
-            console.error(err);
-        });
+            .then((res) => {
+                return res.json();
+            })
+            .then(jsonRes => {
+                if (jsonRes.response && jsonRes.response.length > 0) {
+                    updateTable(table, jsonRes.response, serverName);
+                }
+                else
+                {
+                    throw new Error(jsonRes.error);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });
 
     }
 
@@ -193,28 +210,41 @@
         table = await apiGetter(restAPI.links.allPosts, table);
     }
 
-    async function sqlListId()
-    {
+    async function sqlListId() {
         var table = document.getElementById("sql-response");
         table = await apiGetter(restAPI.links.onlyId, table);
     }
 
-    async function sqlListTitle()
-    {
+    async function sqlListTitle() {
         var table = document.getElementById("sql-response");
         table = await apiGetter(restAPI.links.onlyTitle, table);
     }
 
-    async function sqlListMessage()
-    {
+    async function sqlListMessage() {
         var table = document.getElementById("sql-response");
         table = await apiGetter(restAPI.links.onlyMessage, table);
     }
 
-    async function sqlListCreatedAt()
-    {
+    async function sqlListCreatedAt() {
         var table = document.getElementById("sql-response");
         table = await apiGetter(restAPI.links.onlyCreatedAt, table);
+    }
+
+    async function sqlListMannual() {
+        var table = document.getElementById("sql-response");
+        var userInput = document.getElementById("sqlQuery");
+        if (userInput.value !== "") {
+            table = await apiPoster(
+                restAPI.root + restAPI.links.mannual,
+                table,
+                { query: userInput.value },
+                restAPI.name
+            );
+            userInput.value = "";
+        }
+        else {
+            userInput.placeholder = "Enter a valid Query";
+        }
     }
 
     async function gqlFetchAll() {
@@ -224,7 +254,12 @@
         var userInput = document.getElementById("gqlQuery");
         var table = document.getElementById("responseTable");
         if (userInput.value !== "") {
-            table = await apiPoster(graphQL.links.allPosts, table, {input: userInput.value});
+            table = await apiPoster(
+                graphQL.root + graphQL.links.allPosts,
+                table,
+                { input: userInput.value },
+                graphQL.name
+            );
         }
         else {
             userInput.placeholder = "Please Enter the query";

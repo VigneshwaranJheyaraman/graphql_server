@@ -4,8 +4,15 @@ const { serverConfig } = require("./serverConfig");
 
 const databaseServerBridge = (err, rows, fields, callBack) => {
     if (err) {
-        console.log("error", err);
-        callBack([{ error: err }]);
+        try
+        {
+            console.log("error", err);
+        }
+        catch(err)
+        {
+            console.log("An error occured kindly take a look");
+            callBack([{ error: err }]);
+        }
     }
     if (rows && rows.length > 0) {
         callBack({response: rows});
